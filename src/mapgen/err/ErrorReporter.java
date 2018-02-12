@@ -1,4 +1,4 @@
-package sample.err;
+package mapgen.err;
 
 public interface ErrorReporter {
 

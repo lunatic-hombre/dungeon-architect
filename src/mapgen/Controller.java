@@ -1,4 +1,4 @@
-package sample;
+package mapgen;
 
 public class Controller {
 }

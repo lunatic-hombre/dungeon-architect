@@ -1,4 +1,4 @@
-package sample.map;
+package mapgen.map;
 
 public interface Room {
 
