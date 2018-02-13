@@ -17,7 +17,8 @@ public class CommandInput extends TextField {
             RESET_CMD_PATTERN = Pattern.compile("RESET|CLEAR|REFRESH", Pattern.CASE_INSENSITIVE),
             ROOM_CMD_PATTERN = Pattern.compile("(\\d+)\\s*x\\s*(\\d+)((\\s*\\p{Alpha}((?:\\d+)?(?:,\\d+)?)?)?(?:\\+\\+|--)?)?", Pattern.CASE_INSENSITIVE),
             ROOM_LOC_PATTERN = Pattern.compile("(\\p{Alpha})?(?:(\\d+)(?:,(\\d+))?)?(\\+\\+|--)?"),
-            STAIRS_PATTERN = Pattern.compile("s(?:tairs)?\\s*(\\d+)(\\p{Alpha})", Pattern.CASE_INSENSITIVE);
+            STAIRS_PATTERN = Pattern.compile("s(?:tairs)?\\s*(\\d+)(\\p{Alpha})", Pattern.CASE_INSENSITIVE),
+            DOOR_PATTERN = Pattern.compile("d(?:oor)?\\s*(\\d+)(\\p{Alpha})", Pattern.CASE_INSENSITIVE);
 
     private final MapCanvas mapCanvas;
     private final ErrorReporter errorReporter;
@@ -47,6 +48,8 @@ public class CommandInput extends TextField {
                     new BaseRoom(Integer.parseInt(matcher.group(1)), Integer.parseInt(matcher.group(2))));
         else if((matcher = STAIRS_PATTERN.matcher(text)).matches())
             mapCanvas.addStairs(getWallPointer(matcher.group(1), matcher.group(2)));
+        else if((matcher = DOOR_PATTERN.matcher(text)).matches())
+            mapCanvas.addDoor(getWallPointer(matcher.group(1), matcher.group(2)));
         else if (RESET_CMD_PATTERN.matcher(text).matches())
             mapCanvas.clear();
         else

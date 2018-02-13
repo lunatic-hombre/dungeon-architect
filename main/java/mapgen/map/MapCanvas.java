@@ -6,6 +6,8 @@ public interface MapCanvas {
 
     void addStairs(WallPointer wallPointer);
 
+    void addDoor(WallPointer wallPointer);
+
     void clear();
 
 }

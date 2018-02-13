@@ -1,6 +1,7 @@
 package mapgen.map;
 
 import javafx.geometry.Point2D;
+import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -8,6 +9,7 @@ import javafx.scene.paint.Paint;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Shape;
+import mapgen.fx.Tracer;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,6 +34,7 @@ public class IsometricMapCanvas implements MapCanvas {
     private final Pane canvas;
     private final double gridSize;
     private IsoRoom root, current;
+    private int roomIncrement = 0;
 
     public IsometricMapCanvas(Pane canvas, double gridSize) {
         this.canvas = canvas;
@@ -57,7 +60,7 @@ public class IsometricMapCanvas implements MapCanvas {
                     bottomOfStairwell.add(getIsoVector(EAST).multiply(gridSize)));
         }
         else {
-            final Point2D baseOfWall = current.getCorner(wall, SOUTH)
+            final Point2D baseOfWall = current.getCorner(SOUTH, wall)
                     .add(getIsoVector(NORTH).multiply(offset));
             final Point2D topOfStairwell = baseOfWall.add(0, ceilingHeight());
             final Point2D bottomOfStairwell = baseOfWall
@@ -72,23 +75,55 @@ public class IsometricMapCanvas implements MapCanvas {
     }
 
     @Override
+    public void addDoor(WallPointer wallPointer) {
+        if (current == null)
+            throw new IllegalStateException();
+        final CardinalDirection wall = wallPointer.getDirection().orElse(randomDirection());
+        final int index = wallPointer.getIndex().orElse(wall.isVertical() ? current.getUnitLength()/2 : current.getUnitDepth()/2);
+        final double offset = gridSize * index;
+        final Shape door;
+        if (wall.isVertical()) {
+            final Point2D baseOfWall = current.getCorner(wall, WEST)
+                    .add(getIsoVector(EAST).multiply(offset));
+            final Point2D topOfWall = baseOfWall.add(0, ceilingHeight());
+            door = polygon(baseOfWall, topOfWall,
+                    topOfWall.add(getIsoVector(EAST).multiply(gridSize)),
+                    baseOfWall.add(getIsoVector(EAST).multiply(gridSize)));
+        }
+        else {
+            final Point2D baseOfWall = current.getCorner(SOUTH, wall)
+                    .add(getIsoVector(NORTH).multiply(offset));
+            final Point2D topOfWall = baseOfWall.add(0, ceilingHeight());
+            door = polygon(baseOfWall, topOfWall,
+                    topOfWall.add(getIsoVector(NORTH).multiply(gridSize)),
+                    baseOfWall.add(getIsoVector(NORTH).multiply(gridSize)));
+        }
+        door.setStroke(Color.BLACK);
+        door.setFill(Color.gray(0.25, 0.5));
+        draw(door);
+    }
+
+    @Override
     public void addRoom(RoomPointer location, Room room) {
         final IsoRoom newRoom = addNewRoom(room, getRelativeRoomLocation(location, current, room));
         drawRoom(newRoom);
     }
 
     private void drawRoom(IsoRoom room) {
+        final Group group = new Group();
         final Polygon floorShape = room.getPolygon();
         floorShape.setStroke(STROKE_COLOR);
         floorShape.setFill(Color.TRANSPARENT);
-        draw(floorShape);
-        draw(room.getGridLines());
-        draw(
+        group.getChildren().add(floorShape);
+        group.getChildren().addAll(room.getGridLines());
+        group.getChildren().addAll(
             room.getWall(WEST, Color.gray(0.5, 0.05)),
             room.getWall(NORTH, Color.gray(0.7, 0.05)),
             room.getWall(EAST, Color.TRANSPARENT),
             room.getWall(SOUTH, Color.TRANSPARENT)
         );
+        group.setId("room#"+(roomIncrement++));
+        draw(group);
     }
 
     private IsoRoom addNewRoom(Room room, RelativeRoomLocation relativeLocation) {
@@ -111,7 +146,7 @@ public class IsometricMapCanvas implements MapCanvas {
     @Override
     public void clear() {
         canvas.getChildren().clear();
-        current = null;
+        current = root = null;
     }
 
     private RelativeRoomLocation getRelativeRoomLocation(RoomPointer location, IsoRoom parent, Room room) {
@@ -134,10 +169,64 @@ public class IsometricMapCanvas implements MapCanvas {
         return -(ROOM_HEIGHT*gridSize)/2;
     }
 
+    /**
+     * Navigate to a point by grid increments.
+     */
+    private Tracer<Direction, Point2D> pointTracer(Point2D start) {
+        return new Tracer<Direction, Point2D>() {
+
+            Point2D p = start;
+
+            @Override
+            public Tracer then(double distance, Direction direction) {
+                p = p.add(getIsoVector(direction).multiply(distance));
+                return this;
+            }
+            @Override
+            public Point2D get() {
+                return p;
+            }
+
+        };
+    }
+
     private Point2D getIsoVector(CardinalDirection direction) {
         Point2D vector = direction.getVector();
         vector = direction.isVertical() ? vector.add(reflect(vector).multiply(-1)) : vector.add(reflect(vector));
         return multiply(vector, 1/XSCALE, 1/YSCALE);
+    }
+
+    private Point2D getIsoVector(Direction direction) {
+        return direction.isElevation()
+                ? new Point2D(0, direction.getElevation()*ROOM_HEIGHT)
+                : multiply(direction.rotate45().getVector(), 1/XSCALE, 1/YSCALE);
+    }
+
+    /**
+     * Generate polygon by grid increments.
+     */
+    private Tracer<Direction, Polygon> polyTracer(Point2D start) {
+        final List<Point2D> points = new ArrayList<>();
+        points.add(start);
+        return new Tracer<Direction, Polygon>() {
+
+            @Override
+            public Tracer then(double distance, Direction direction) {
+                points.add(points.get(points.size()-1).add(getIsoVector(direction).multiply(distance)));
+                return this;
+            }
+            @Override
+            public Polygon get() {
+                return new Polygon(points.stream()
+                        .flatMapToDouble(p -> DoubleStream.of(p.getX(), p.getY()))
+                        .toArray());
+            }
+
+        };
+    }
+
+    public IsoRoom getRoot() {
+        return root;
     }
 
     class IsoRoom {
