@@ -1,5 +1,7 @@
 # Dungeon Architect
 
+![demo gif](docs/demo.gif)
+
 If you want to make complex maps for tabletop role-playing 
 games, then you've come to the right place.
 

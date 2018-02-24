@@ -1,13 +1,21 @@
 package darch;
 
+import com.sun.javafx.geom.Rectangle;
 import javafx.application.Application;
+import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Rectangle2D;
+import javafx.print.PrinterJob;
+import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.SnapshotParameters;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
+import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
@@ -22,6 +30,7 @@ import darch.cmd.MapCommandExecutor;
 import darch.map.IsoMap;
 import darch.map.MapCanvas;
 
+import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
 
@@ -47,8 +56,8 @@ public class Main extends Application {
                         menuItem("Open", new KeyCodeCombination(KeyCode.O, KeyCombination.SHORTCUT_DOWN), e -> loadFromFile(stage, commands)),
                         menuItem("Save", new KeyCodeCombination(KeyCode.S, KeyCombination.SHORTCUT_DOWN), e -> saveToFile(stage, commands)),
                         menuItem("Save As...", new KeyCodeCombination(KeyCode.S, KeyCombination.SHIFT_DOWN, KeyCombination.SHORTCUT_DOWN), e -> saveAsFile(stage, commands)),
-                        new MenuItem("Export..."),
-                        new MenuItem("Print")),
+                        menuItem("Export...", new KeyCodeCombination(KeyCode.X, KeyCombination.SHORTCUT_DOWN), e -> export(stage, canvas)),
+                        menuItem("Print", new KeyCodeCombination(KeyCode.P, KeyCombination.SHORTCUT_DOWN), e -> print(stage, canvas))),
                 menu("Edit",
                         menuItem("Undo", new KeyCodeCombination(KeyCode.Z, KeyCombination.SHORTCUT_DOWN), e -> commands.undo()),
                         menuItem("Redo", new KeyCodeCombination(KeyCode.Z, KeyCombination.SHIFT_DOWN, KeyCombination.SHORTCUT_DOWN), e -> commands.redo())),
@@ -83,6 +92,55 @@ public class Main extends Application {
         scene.getStylesheets().add("style.css");
         stage.setScene(scene);
         stage.show();
+    }
+
+    private void print(Stage stage, Node node) {
+        final PrinterJob job = PrinterJob.createPrinterJob();
+        if (job == null)
+            throw new RuntimeException("Printing not available!");
+        boolean proceed = job.showPageSetupDialog(stage);
+        if (!proceed)
+            return;
+        proceed = job.showPrintDialog(stage);
+        if (!proceed)
+            return;
+        final boolean success = job.printPage(node);
+        if (success) {
+            job.endJob();
+        }
+    }
+
+    private void export(Stage stage, Parent node) {
+        if (node.getChildrenUnmodifiable().isEmpty())
+            return;
+        final Rectangle2D viewport = getVisibleBox(node);
+        final FileChooser fileChooser = new FileChooser();
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("pixel nemmrrr graphics (*.png)", "*.png"));
+        final File file = fileChooser.showSaveDialog(stage);
+        final SnapshotParameters snapshotParameters = new SnapshotParameters();
+        snapshotParameters.setViewport(viewport);
+        final WritableImage image = node.snapshot(snapshotParameters, null);
+        try {
+            if (!ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", file))
+                System.err.println("Image didn't write?");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private Rectangle2D getVisibleBox(Parent node) {
+        double minX = Double.MAX_VALUE, minY = Double.MAX_VALUE, maxX = 0, maxY = 0;
+        for (Node child : node.getChildrenUnmodifiable()) {
+            minX = Math.min(minX, child.getBoundsInParent().getMinX());
+            maxX = Math.max(maxX, child.getBoundsInParent().getMaxX());
+            minY = Math.min(minY, child.getBoundsInParent().getMinY());
+            maxY = Math.max(maxY, child.getBoundsInParent().getMaxY());
+        }
+        return new Rectangle2D(
+                minX + node.getBoundsInParent().getMinX(),
+                minY + node.getBoundsInParent().getMinY(),
+                (maxX - minX),
+                (maxY - minY));
     }
 
     private void loadFromFile(Stage stage, MapCommandExecutor commands) {
