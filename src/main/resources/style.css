@@ -1,0 +1,34 @@
+.grid-lines > * {
+    -fx-stroke: darkcyan;
+    -fx-opacity: 0.5;
+}
+.wall {
+    -fx-stroke: black;
+    -fx-opacity: 0.15;
+}
+.north.wall {
+    -fx-fill: darkgray;
+}
+.west.wall {
+    -fx-fill: lightgray;
+}
+.east.wall, .south.wall {
+    -fx-fill: transparent;
+}
+.floor-outline {
+    -fx-fill: white;
+    -fx-stroke: black;
+    -fx-opacity: 0.75;
+}
+.door {
+    -fx-fill: gray;
+}
+.stairs-side {
+    -fx-fill: gray;
+}
+.stair-up,.stairs-back {
+    -fx-fill: darkgray;
+}
+.stair-across {
+    -fx-fill: lightgray;
+}
