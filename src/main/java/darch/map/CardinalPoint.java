@@ -19,6 +19,14 @@ public enum CardinalPoint {
         this.horizontal = horizontal;
     }
 
+    public int getX() {
+        return (int) matrix[0];
+    }
+
+    public int getY() {
+        return (int) matrix[1];
+    }
+
     public double[] getMatrix() {
         return matrix;
     }

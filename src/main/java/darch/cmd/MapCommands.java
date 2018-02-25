@@ -13,8 +13,11 @@ public class MapCommands {
     public static Format<MapCommand> getDefaultFormat(MapCanvas mapCanvas) {
         return new ExtensibleMapCommandFormat()
                 .put("(\\d+)\\s*x\\s*(\\d+)((\\s*\\p{Alpha}((?:\\d+)?(?:,\\d+)?)?)?(?:\\+\\+|--)?)?", m -> {
-                    final BaseRoom newRoom = new BaseRoom(Integer.parseInt(m.group(1)), Integer.parseInt(m.group(2)));
-                    return new AddRoomCommand(newRoom, getRoomLocation(mapCanvas, m.group(3), newRoom));
+                    final int depth = Integer.parseInt(m.group(1)), length = Integer.parseInt(m.group(2));
+                    final Room parent = mapCanvas.getCurrentRoom();
+                    final RelativeRoomLocation location = getRoomLocation(parent, m.group(3), depth, length);
+                    final BaseRoom newRoom = new BaseRoom(parent, location, depth, length);
+                    return new AddRoomCommand(newRoom);
                 })
                 .put("s(?:tairs)?\\s*(\\d+)(\\p{Alpha})", m -> new AddStairsCommand(getWallPointer(mapCanvas, m.group(1), m.group(2))))
                 .put("d(?:oor)?\\s*(\\d+)(\\p{Alpha})", m -> new AddDoorCommand(getWallPointer(mapCanvas, m.group(1), m.group(2))))
@@ -33,8 +36,8 @@ public class MapCommands {
         return new WallLocation(direction, index);
     }
 
-    private static RelativeRoomLocation getRoomLocation(MapCanvas mapCanvas, String locationString, Room newRoom) {
-        if (locationString == null || mapCanvas.getCurrentRoom() == null)
+    private static RelativeRoomLocation getRoomLocation(Room parent, String locationString, Integer x, Integer y) {
+        if (locationString == null || parent == null)
             return null;
         final Matcher locMatcher = ROOM_LOC_PATTERN.matcher(locationString);
         if (!locMatcher.matches())
@@ -44,16 +47,19 @@ public class MapCommands {
                 .orElseGet(MapCommands::randomDirection);
         final int index = Optional.ofNullable(locMatcher.group(2))
                 .map(str -> Integer.parseInt(str) - 1)
-                .orElseGet(() -> getMiddleIndex(direction, mapCanvas.getCurrentRoom()));
+                .orElseGet(() -> getMiddleIndex(direction, parent));
         final int childIndex = Optional.ofNullable(locMatcher.group(3))
                 .map(str -> Integer.parseInt(str) - 1)
-                .orElseGet(() -> getMiddleIndex(direction, newRoom));
+                .orElseGet(() -> getMiddleIndex(direction, x, y));
         final RelativeLevel level = getRelativeLevel(Optional.ofNullable(locMatcher.group(4)).orElse(""));
         return new RelativeRoomLocation(direction, index, childIndex, level);
     }
 
     private static int getMiddleIndex(CardinalPoint direction, Room room) {
-        return (int) (Math.abs(room.getDimensions().dotProduct(direction.rotate90().getVector())) / 2);
+        return getMiddleIndex(direction, room.getDepth(), room.getLength());
+    }
+    private static int getMiddleIndex(CardinalPoint direction, Integer x, Integer y) {
+        return (int) (Math.abs(direction.rotate90().getVector().dotProduct(x, y)) / 2);
     }
 
     private static RelativeLevel getRelativeLevel(String input) {
@@ -71,11 +77,9 @@ public class MapCommands {
     static class AddRoomCommand implements MapCommand {
 
         final Room room;
-        final RelativeRoomLocation location;
 
-        public AddRoomCommand(Room room, RelativeRoomLocation location) {
+        public AddRoomCommand(Room room) {
             this.room = room;
-            this.location = location;
         }
 
         @Override
@@ -84,6 +88,7 @@ public class MapCommands {
         }
 
         private String locationString() {
+            final RelativeRoomLocation location = room.getLocation();
             if (location == null)
                 return "";
             String locationString = location.getDirection().name().substring(0, 1)
@@ -95,7 +100,7 @@ public class MapCommands {
 
         @Override
         public void execute(MapCanvas map) {
-            map.addRoom(location, room);
+            map.addRoom(room);
         }
 
         @Override

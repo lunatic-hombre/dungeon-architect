@@ -10,7 +10,7 @@ public interface MapCanvas {
     /**
      * Add an adjacent room in the given location.
      */
-    void addRoom(RelativeRoomLocation location, Room room);
+    void addRoom(Room room);
 
     /**
      * Add stairs to current room at given wall location. Stairs will climb at 45 degree angle, so clearance is

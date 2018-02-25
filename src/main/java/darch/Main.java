@@ -1,6 +1,10 @@
 package darch;
 
-import com.sun.javafx.geom.Rectangle;
+import darch.cmd.CommandInputField;
+import darch.cmd.ListMapCommandExecutor;
+import darch.cmd.MapCommandExecutor;
+import darch.map.IsoMap;
+import darch.map.MapCanvas;
 import javafx.application.Application;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
@@ -24,11 +28,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import darch.cmd.CommandInputField;
-import darch.cmd.ListMapCommandExecutor;
-import darch.cmd.MapCommandExecutor;
-import darch.map.IsoMap;
-import darch.map.MapCanvas;
 
 import javax.imageio.ImageIO;
 import java.io.File;
@@ -113,7 +112,7 @@ public class Main extends Application {
     private void export(Stage stage, Parent node) {
         if (node.getChildrenUnmodifiable().isEmpty())
             return;
-        final Rectangle2D viewport = getVisibleBox(node);
+        final Rectangle2D viewport = getVisibleArea(node);
         final FileChooser fileChooser = new FileChooser();
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("pixel nemmrrr graphics (*.png)", "*.png"));
         final File file = fileChooser.showSaveDialog(stage);
@@ -128,7 +127,8 @@ public class Main extends Application {
         }
     }
 
-    private Rectangle2D getVisibleBox(Parent node) {
+    // TODO limited by viewport?
+    private Rectangle2D getVisibleArea(Parent node) {
         double minX = Double.MAX_VALUE, minY = Double.MAX_VALUE, maxX = 0, maxY = 0;
         for (Node child : node.getChildrenUnmodifiable()) {
             minX = Math.min(minX, child.getBoundsInParent().getMinX());
