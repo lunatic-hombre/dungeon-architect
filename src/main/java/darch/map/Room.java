@@ -4,6 +4,16 @@ import javafx.geometry.Point2D;
 
 public interface Room {
 
+    Room getParent();
+
+    RelativeRoomLocation getLocation();
+
+    int getLongitude();
+
+    int getLatitude();
+
+    int getLevel();
+
     int getDepth();
 
     int getLength();

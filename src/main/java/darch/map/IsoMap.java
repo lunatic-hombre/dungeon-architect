@@ -1,5 +1,6 @@
 package darch.map;
 
+import darch.collection.Lists;
 import javafx.animation.TranslateTransition;
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
@@ -14,6 +15,7 @@ import darch.fx.Tracer;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.DoubleStream;
 
@@ -26,8 +28,14 @@ import static darch.math.Matrices.reflect;
 public class IsoMap implements MapCanvas {
 
     private static final double XSCALE = 2, YSCALE = 5, ROOM_HEIGHT = 2;
-    public static final int STAIR_COUNT = 8;
-    public static final double STAIR_SIZE = ROOM_HEIGHT / (double) STAIR_COUNT;
+    private static final int STAIR_COUNT = 8;
+    private static final double STAIR_SIZE = ROOM_HEIGHT / (double) STAIR_COUNT;
+    private static final String ROOM_KEY = "room";
+    public static final Comparator<Node> ISO_ROOM_SORT = Comparator.<Node>comparingInt(n -> getRoom(n).getLevel())
+            .thenComparing(n -> {
+                Room room = getRoom(n);
+                return room.getLatitude() + room.getLongitude();
+            });
 
     private final Pane canvas;
     private final double gridSize;
@@ -69,10 +77,14 @@ public class IsoMap implements MapCanvas {
      *   ==================
      */
     @Override
-    public void addRoom(RelativeRoomLocation location, Room room) {
-        setCurrent(new IsoRoom(current, room, location));
-        canvas.getChildren().add(current.getUI());
+    public void addRoom(Room room) {
+        setCurrent(new IsoRoom(current, room));
+        Lists.add(canvas.getChildren(), current.getUI(), ISO_ROOM_SORT);
         rooms.add(current);
+    }
+
+    private static Room getRoom(Node n) {
+        return (Room) n.getProperties().get(ROOM_KEY);
     }
 
     private void setCurrent(IsoRoom room) {
@@ -219,30 +231,28 @@ public class IsoMap implements MapCanvas {
 
         final IsoRoom parent;
         final Room room;
-        final RelativeRoomLocation location;
         final List<ObjectReference> objectReferences;
 
         transient Point2D midPoint;
         transient Group ui;
 
-        public IsoRoom(IsoRoom parent, Room room, RelativeRoomLocation location) {
+        public IsoRoom(IsoRoom parent, Room room) {
             this.parent = parent;
             this.room = room;
-            this.location = location;
             this.objectReferences = new ArrayList<>();
             if (parent == null)
                 this.midPoint = new Point2D(canvas.getWidth()/2d, canvas.getHeight()/2d);
             else {
-                final Direction direction = location.getDirection().asDirection();
+                final Direction direction = getLocation().getDirection().asDirection();
 
                 final double distanceToward = Math.abs(parent.getDimensions().dotProduct(direction.getVector()) / 2d + getDimensions().dotProduct(direction.getVector()) / 2d);
-                final double parentOffset = Math.abs(reflect(parent.getDimensions()).dotProduct(direction.getVector()) / 2d) - (double)(location.getParentIndex());
-                final double childOffset = Math.abs(reflect(getDimensions()).dotProduct(direction.getVector()) / 2d) - (double)(location.getChildIndex());
+                final double parentOffset = Math.abs(reflect(parent.getDimensions()).dotProduct(direction.getVector()) / 2d) - (double)(getLocation().getParentIndex());
+                final double childOffset = Math.abs(reflect(getDimensions()).dotProduct(direction.getVector()) / 2d) - (double)(getLocation().getChildIndex());
 
                 this.midPoint = points(parent.getMidPoint())
                         .then(distanceToward, direction)
                         .then(parentOffset - childOffset, direction.fallBack())
-                        .then(ROOM_HEIGHT, location.getFloor().asDirection())
+                        .then(ROOM_HEIGHT, getLocation().getFloor().asDirection())
                         .get();
             }
         }
@@ -307,7 +317,10 @@ public class IsoMap implements MapCanvas {
                     .then(ROOM_HEIGHT, DOWN)
                     .get();
 
-            return ui = new Group(floor, westWall, northWall, eastWall, southWall);
+            ui = new Group(floor, westWall, northWall, eastWall, southWall);
+            ui.getProperties().put(ROOM_KEY, this);
+
+            return ui;
         }
 
         public Point2D getMidPoint() {
@@ -327,10 +340,37 @@ public class IsoMap implements MapCanvas {
             return line(shift(midWall, distance, d1.asDirection()), shift(midWall, distance, d2.asDirection()));
         }
 
+        @Override
+        public Room getParent() {
+            return room.getParent();
+        }
+
+        @Override
+        public RelativeRoomLocation getLocation() {
+            return room.getLocation();
+        }
+
+        @Override
+        public int getLongitude() {
+            return room.getLongitude();
+        }
+
+        @Override
+        public int getLatitude() {
+            return room.getLatitude();
+        }
+
+        @Override
+        public int getLevel() {
+            return room.getLevel();
+        }
+
+        @Override
         public int getDepth() {
             return room.getDepth();
         }
 
+        @Override
         public int getLength() {
             return room.getLength();
         }
