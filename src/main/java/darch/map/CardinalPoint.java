@@ -43,6 +43,10 @@ public enum CardinalPoint {
         return !horizontal;
     }
 
+    public CardinalPoint fallback() {
+        return isHorizontal() ? SOUTH : WEST;
+    }
+
     public CardinalPoint rotate90() {
         return values()[(ordinal()+1)%4];
     }
