@@ -30,4 +30,8 @@ public interface Room {
         return new Point2D(getDepth(), getLength());
     }
 
+    default double getDimension(CardinalPoint direction) {
+        return Math.abs(direction.getVector().dotProduct(getDimensions()));
+    }
+
 }

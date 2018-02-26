@@ -43,4 +43,8 @@ public interface MapCanvas {
      */
     void deleteRoom();
 
+    /**
+     * Drop wall in given direction from current room.
+     */
+    void dropWall(CardinalPoint direction);
 }

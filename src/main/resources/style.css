@@ -4,7 +4,7 @@
 }
 .wall {
     -fx-stroke: black;
-    -fx-opacity: 0.15;
+    -fx-opacity: 0.25;
 }
 .north.wall {
     -fx-fill: darkgray;
@@ -17,8 +17,11 @@
 }
 .floor-outline {
     -fx-fill: white;
-    -fx-stroke: black;
-    -fx-opacity: 0.75;
+    -fx-stroke: darkcyan;
+    -fx-opacity: 0.5;
+}
+.active .floor-outline {
+    -fx-stroke-width: 2;
 }
 .door {
     -fx-fill: gray;

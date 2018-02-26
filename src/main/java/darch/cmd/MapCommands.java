@@ -23,7 +23,8 @@ public class MapCommands {
                 .put("d(?:oor)?\\s*(\\d+)(\\p{Alpha})", m -> new AddDoorCommand(getWallPointer(mapCanvas, m.group(1), m.group(2))))
                 .put("(\\d+)?(\\p{Alpha})", m -> new GoCommand(getWallPointer(mapCanvas, m.group(1), m.group(2))))
                 .put("back", m -> new BackCommand())
-                .put("RESET|CLEAR|REFRESH", m -> new ClearCommand());
+                .put("RESET|CLEAR|REFRESH", m -> new ClearCommand())
+                .put("drop\\s*(\\p{Alpha})", m -> new DropWallCommand(CardinalPoint.byChar(m.group(1).charAt(0))));
     }
 
     private static WallLocation getWallPointer(MapCanvas mapCanvas, String indexStr, String directionStr) {
@@ -247,4 +248,28 @@ public class MapCommands {
 
     }
 
+    private static class DropWallCommand implements MapCommand {
+
+        final CardinalPoint direction;
+
+        public DropWallCommand(CardinalPoint direction) {
+            this.direction = direction;
+        }
+
+        @Override
+        public String asString() {
+            return "drop" + direction.name().charAt(0);
+        }
+
+        @Override
+        public void execute(MapCanvas map) {
+            map.dropWall(direction);
+        }
+
+        @Override
+        public MapCommand reverse() {
+            throw new UnsupportedOperationException();
+        }
+
+    }
 }
