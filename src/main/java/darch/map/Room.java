@@ -14,20 +14,20 @@ public interface Room {
 
     int getLevel();
 
-    int getDepth();
+    int getHorizontalScale();
 
-    int getLength();
+    int getMeridianScale();
 
-    default double getHalfDepth() {
-        return ((double) getDepth())/2d;
+    default double getHalfHorizontal() {
+        return ((double) getHorizontalScale())/2d;
     }
 
-    default double getHalfLength() {
-        return ((double) getLength())/2d;
+    default double getHalfMeridian() {
+        return ((double) getMeridianScale())/2d;
     }
 
     default Point2D getDimensions() {
-        return new Point2D(getDepth(), getLength());
+        return new Point2D(getHorizontalScale(), getMeridianScale());
     }
 
     default double getDimension(CardinalPoint direction) {

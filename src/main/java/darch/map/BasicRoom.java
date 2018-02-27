@@ -1,20 +1,20 @@
 package darch.map;
 
-public class BaseRoom implements Room {
+public class BasicRoom implements Room {
 
     private final Room parent;
     private final RelativeRoomLocation location;
-    private final int depth, length;
+    private final int horizontal, meridian;
 
-    public BaseRoom(int depth, int length) {
-        this(null, null, depth, length);
+    public BasicRoom(int horizontal, int meridian) {
+        this(null, null, horizontal, meridian);
     }
 
-    public BaseRoom(Room parent, RelativeRoomLocation location, int depth, int length) {
+    public BasicRoom(Room parent, RelativeRoomLocation location, int horizontal, int meridian) {
         this.parent = parent;
         this.location = location;
-        this.depth = depth;
-        this.length = length;
+        this.horizontal = horizontal;
+        this.meridian = meridian;
     }
 
     @Override
@@ -33,7 +33,7 @@ public class BaseRoom implements Room {
             return 0;
         final int parentsLongitude = parent.getLongitude();
         return location.getDirection().isHorizontal()
-                ? location.getDirection().getX() * (parentsLongitude + parent.getDepth()/2 + depth/2)
+                ? location.getDirection().getX() * (parentsLongitude + parent.getHorizontalScale()/2 + horizontal /2)
                 : parentsLongitude;
     }
 
@@ -43,7 +43,7 @@ public class BaseRoom implements Room {
             return 0;
         final int parentsLatitude = parent.getLatitude();
         return location.getDirection().isVertical()
-                ? location.getDirection().getY() * (parentsLatitude + parent.getLength()/2 + length/2)
+                ? location.getDirection().getY() * (parentsLatitude + parent.getMeridianScale()/2 + meridian /2)
                 : parentsLatitude;
     }
 
@@ -58,13 +58,13 @@ public class BaseRoom implements Room {
     }
 
     @Override
-    public int getDepth() {
-        return depth;
+    public int getHorizontalScale() {
+        return horizontal;
     }
 
     @Override
-    public int getLength() {
-        return length;
+    public int getMeridianScale() {
+        return meridian;
     }
 
 }

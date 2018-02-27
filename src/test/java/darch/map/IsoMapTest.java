@@ -12,7 +12,6 @@ import org.mockito.runners.MockitoJUnitRunner;
 import java.util.Optional;
 
 import static java.util.stream.Collectors.joining;
-import static darch.map.CardinalPoint.*;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.spy;
@@ -42,7 +41,7 @@ public class IsoMapTest {
 
     @Test
     public void addSingleRoom() {
-        map.addRoom(new BaseRoom(5, 5));
+        map.addRoom(new BasicRoom(5, 5));
         assertEquals("Should add room as single group.", 1, pane.getChildren().size());
         final Group roomShapes = (Group) pane.getChildren().get(0);
         assertEquals(5, roomShapes.getChildren().size());
@@ -53,7 +52,7 @@ public class IsoMapTest {
 
     @Test
     public void addRooms_basic() {
-        map.addRoom(new BaseRoom(5, 15));
+        map.addRoom(new BasicRoom(5, 15));
 //        map.addRoom(new RelativeRoomLocation(EAST, -1, -1, RelativeLevel.SAME_LEVEL), new BaseRoom(7, 3));
 //        map.addRoom(new RelativeRoomLocation(NORTH, 2, -1, RelativeLevel.SAME_LEVEL), new BaseRoom(1, 4));
 //        map.addRoom(new RelativeRoomLocation(NORTH, -1, -1, RelativeLevel.SAME_LEVEL), new BaseRoom(5, 5));

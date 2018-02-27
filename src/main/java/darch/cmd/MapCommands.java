@@ -1,5 +1,6 @@
 package darch.cmd;
 
+import darch.cmd.types.*;
 import darch.map.*;
 
 import java.util.Optional;
@@ -13,15 +14,15 @@ public class MapCommands {
     public static Format<MapCommand> getDefaultFormat(MapCanvas mapCanvas) {
         return new ExtensibleMapCommandFormat()
                 .put("(\\d+)\\s*x\\s*(\\d+)((\\s*\\p{Alpha}((?:\\d+)?(?:,\\d+)?)?)?(?:\\+\\+|--)?)?", m -> {
-                    final int depth = Integer.parseInt(m.group(1)), length = Integer.parseInt(m.group(2));
+                    final int horizontal = Integer.parseInt(m.group(1)), meridian = Integer.parseInt(m.group(2));
                     final Room parent = mapCanvas.getCurrentRoom();
-                    final RelativeRoomLocation location = getRoomLocation(parent, m.group(3), depth, length);
-                    final BaseRoom newRoom = new BaseRoom(parent, location, depth, length);
+                    final RelativeRoomLocation location = getRoomLocation(parent, m.group(3), horizontal, meridian);
+                    final BasicRoom newRoom = new BasicRoom(parent, location, horizontal, meridian);
                     return new AddRoomCommand(newRoom);
                 })
                 .put("s(?:tairs)?\\s*(\\d+)(\\p{Alpha})", m -> new AddStairsCommand(getWallPointer(mapCanvas, m.group(1), m.group(2))))
                 .put("d(?:oor)?\\s*(\\d+)(\\p{Alpha})", m -> new AddDoorCommand(getWallPointer(mapCanvas, m.group(1), m.group(2))))
-                .put("(\\d+)?(\\p{Alpha})", m -> new GoCommand(getWallPointer(mapCanvas, m.group(1), m.group(2))))
+                .put("(\\d+)?(\\p{Alpha})", m -> new GoTowardCommand(getWallPointer(mapCanvas, m.group(1), m.group(2))))
                 .put("back", m -> new BackCommand())
                 .put("RESET|CLEAR|REFRESH", m -> new ClearCommand())
                 .put("drop\\s*(\\p{Alpha})", m -> new DropWallCommand(CardinalPoint.byChar(m.group(1).charAt(0))));
@@ -57,7 +58,7 @@ public class MapCommands {
     }
 
     private static int getMiddleIndex(CardinalPoint direction, Room room) {
-        return getMiddleIndex(direction, room.getDepth(), room.getLength());
+        return getMiddleIndex(direction, room.getHorizontalScale(), room.getMeridianScale());
     }
     private static int getMiddleIndex(CardinalPoint direction, Integer x, Integer y) {
         return (int) (Math.abs(direction.rotate90().getVector().dotProduct(x, y)) / 2);
@@ -75,201 +76,4 @@ public class MapCommands {
         return CardinalPoint.values()[(int) (Math.random() * 4d)];
     }
 
-    static class AddRoomCommand implements MapCommand {
-
-        final Room room;
-
-        public AddRoomCommand(Room room) {
-            this.room = room;
-        }
-
-        @Override
-        public String asString() {
-            return room.getDepth() + "x" + room.getLength() + locationString();
-        }
-
-        private String locationString() {
-            final RelativeRoomLocation location = room.getLocation();
-            if (location == null)
-                return "";
-            String locationString = location.getDirection().name().substring(0, 1)
-                    + location.getParentIndex() + "," + location.getChildIndex();
-            if (!location.getFloor().equals(RelativeLevel.SAME_LEVEL))
-                locationString += location.getFloor().equals(RelativeLevel.ABOVE) ? "++" : "--";
-            return locationString;
-        }
-
-        @Override
-        public void execute(MapCanvas map) {
-            map.addRoom(room);
-        }
-
-        @Override
-        public MapCommand reverse() {
-            return new MapCommand() {
-                @Override
-                public String asString() {
-                    return "^"+AddRoomCommand.this.asString();
-                }
-                @Override
-                public void execute(MapCanvas map) {
-                    map.deleteRoom();
-                }
-                @Override
-                public MapCommand reverse() {
-                    return AddRoomCommand.this;
-                }
-            };
-        }
-    }
-
-    static class AddStairsCommand implements MapCommand {
-
-        final WallLocation wallLocation;
-
-        public AddStairsCommand(WallLocation wallLocation) {
-            this.wallLocation = wallLocation;
-        }
-
-        @Override
-        public String asString() {
-            return "s"+(wallLocation.getIndex()+1)+wallLocation.getDirection().name().subSequence(0,1);
-        }
-
-        @Override
-        public void execute(MapCanvas map) {
-            map.addStairs(wallLocation);
-        }
-
-        @Override
-        public MapCommand reverse() {
-            throw new UnsupportedOperationException(); // TODO
-        }
-
-    }
-
-    static class AddDoorCommand implements MapCommand {
-
-        final WallLocation wallLocation;
-
-        public AddDoorCommand(WallLocation wallLocation) {
-            this.wallLocation = wallLocation;
-        }
-
-        @Override
-        public String asString() {
-            return "d"+(wallLocation.getIndex()+1)+wallLocation.getDirection().name().subSequence(0,1);
-        }
-
-        @Override
-        public void execute(MapCanvas map) {
-            map.addDoor(wallLocation);
-        }
-
-        @Override
-        public MapCommand reverse() {
-            throw new UnsupportedOperationException(); // TODO
-        }
-
-    }
-
-    static class ClearCommand implements MapCommand {
-
-        @Override
-        public String asString() {
-            return "clear";
-        }
-
-        @Override
-        public void execute(MapCanvas map) {
-            map.clear();
-        }
-
-        @Override
-        public MapCommand reverse() {
-            throw new UnsupportedOperationException(); // TODO
-        }
-
-    }
-
-    static class GoCommand implements MapCommand {
-
-        final WallLocation wallLocation;
-
-        public GoCommand(WallLocation wallLocation) {
-            this.wallLocation = wallLocation;
-        }
-
-        @Override
-        public String asString() {
-            return (wallLocation.getIndex()+1)+wallLocation.getDirection().name().substring(0,1);
-        }
-
-        @Override
-        public void execute(MapCanvas map) {
-            map.go(wallLocation);
-        }
-
-        @Override
-        public MapCommand reverse() {
-            return new MapCommand() {
-                @Override
-                public String asString() {
-                    return "back";
-                }
-                @Override
-                public void execute(MapCanvas map) {
-                    map.back();
-                }
-                @Override
-                public MapCommand reverse() {
-                    return GoCommand.this;
-                }
-            };
-        }
-    }
-
-    static class BackCommand implements MapCommand {
-
-        @Override
-        public String asString() {
-            return "back";
-        }
-
-        @Override
-        public void execute(MapCanvas map) {
-            map.back();
-        }
-
-        @Override
-        public MapCommand reverse() {
-            throw new UnsupportedOperationException();
-        }
-
-    }
-
-    private static class DropWallCommand implements MapCommand {
-
-        final CardinalPoint direction;
-
-        public DropWallCommand(CardinalPoint direction) {
-            this.direction = direction;
-        }
-
-        @Override
-        public String asString() {
-            return "drop" + direction.name().charAt(0);
-        }
-
-        @Override
-        public void execute(MapCanvas map) {
-            map.dropWall(direction);
-        }
-
-        @Override
-        public MapCommand reverse() {
-            throw new UnsupportedOperationException();
-        }
-
-    }
 }
