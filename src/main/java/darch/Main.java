@@ -3,12 +3,14 @@ package darch;
 import darch.cmd.CommandInputField;
 import darch.cmd.ListMapCommandExecutor;
 import darch.cmd.MapCommandExecutor;
-import darch.map.IsoMap;
+import darch.map.GenericMapCanvas;
+import darch.map.IsoMapNav;
 import darch.map.MapCanvas;
 import javafx.application.Application;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
 import javafx.print.PrinterJob;
 import javafx.scene.Node;
@@ -47,7 +49,7 @@ public class Main extends Application {
 
         final Pane canvas = new Pane();
         rootPane.setCenter(canvas);
-        final MapCanvas map = new IsoMap(canvas, 30);
+        final MapCanvas map = new GenericMapCanvas(canvas, new IsoMapNav(30));
         final ListMapCommandExecutor commands = new ListMapCommandExecutor(map);
 
         final MenuBar menuBar = new MenuBar(

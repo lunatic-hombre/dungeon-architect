@@ -16,6 +16,6 @@ public interface MapNav {
 
     Point2D relativePoint(Point2D p, double distance, Direction direction);
 
-    Point2D getMidPoint();
+    Point2D getVector(Direction direction);
 
 }

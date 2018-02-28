@@ -1,5 +1,6 @@
 package darch.map;
 
+import javafx.geometry.Point2D;
 import javafx.scene.Group;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Line;
@@ -17,18 +18,18 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.spy;
 
 @RunWith(MockitoJUnitRunner.class)
-public class IsoMapTest {
+public class GenericMapCanvasTest {
 
 
     private static final double GRID_SIZE = 50;
 
     Pane pane;
-    IsoMap map;
+    GenericMapCanvas map;
 
     @Before
     public void setUp() {
         this.pane = spy(new Pane());
-        this.map = new IsoMap(pane, GRID_SIZE);
+        this.map = new GenericMapCanvas(pane, new IsoMapNav(GRID_SIZE));
     }
 
     @Test

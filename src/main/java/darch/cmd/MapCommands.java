@@ -58,7 +58,7 @@ public class MapCommands {
     }
 
     private static int getMiddleIndex(CardinalPoint direction, Room room) {
-        return getMiddleIndex(direction, room.getHorizontalScale(), room.getMeridianScale());
+        return getMiddleIndex(direction, room.getHorizontal(), room.getMeridian());
     }
     private static int getMiddleIndex(CardinalPoint direction, Integer x, Integer y) {
         return (int) (Math.abs(direction.rotate90().getVector().dotProduct(x, y)) / 2);
