@@ -23,7 +23,6 @@ public class MappedRoom implements Room {
 
     final MapNav map;
     final Room room;
-    final List<ObjectReference> objectReferences;
 
     transient Point2D midPoint;
     transient Group ui;
@@ -31,7 +30,6 @@ public class MappedRoom implements Room {
     public MappedRoom(MapNav map, Point2D position, Room room) {
         this.map = map;
         this.room = room;
-        this.objectReferences = new ArrayList<>();
         final Room parent = room.getParent();
         if (room.getParent() == null)
             this.midPoint = position;
@@ -50,7 +48,7 @@ public class MappedRoom implements Room {
         }
     }
 
-    // TODO must maintain reference to model for persistence
+    // TODO maintain reference to model for persistence?
     public void add(Node... nodes) {
         getUI().getChildren().add(new Group(nodes));
     }

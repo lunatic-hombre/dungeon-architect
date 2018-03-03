@@ -1,24 +1,26 @@
 package darch.map;
 
-import darch.math.Matrices;
 import javafx.geometry.Point2D;
+import javafx.scene.transform.Affine;
+
+import static darch.math.Matrices.multiply;
 
 public class IsoMapNav extends AbstractMapNav {
 
-    protected static final double XSCALE = 2;
-    protected static final double YSCALE = 5;
+    private static final double XSCALE = 0.75;
+    private static final double YSCALE = 0.33;
 
-    // TODO midpoint doesn't belong here
-    public IsoMapNav(double gridSize) {
-        super(gridSize);
+    public IsoMapNav(Point2D origin, double gridSize) {
+        super(origin, gridSize);
     }
 
-    // TODO incorporate gridsize into getVector method
     @Override
-    public Point2D getVector(Direction direction) {
-        return direction.isElevation()
-                ? new Point2D(0, direction.getElevation() * MapConstants.ROOM_HEIGHT / YSCALE).multiply(gridSize)
-                : Matrices.multiply(direction.rotate45().getVector(), 1 / XSCALE, 1 / YSCALE).multiply(gridSize);
+    public Point2D translateVector(Point2D v, double level) {
+        return multiply(rotate45(v), gridSize * XSCALE, gridSize * YSCALE).add(0, level * gridSize * YSCALE);
+    }
+
+    private Point2D rotate45(Point2D vector) {
+        return Affine.rotate(45, 0, 0).transform(vector);
     }
 
 }

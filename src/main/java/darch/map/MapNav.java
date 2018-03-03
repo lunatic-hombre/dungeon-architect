@@ -2,9 +2,14 @@ package darch.map;
 
 import darch.fx.Tracer;
 import javafx.geometry.Point2D;
+import javafx.geometry.Point3D;
 import javafx.scene.shape.Polygon;
 
 public interface MapNav {
+
+    Point2D translateGridPoint(Point2D point, double level);
+
+    Point2D translateVector(Point2D vector, double level);
 
     Tracer<Point2D> points(Point2D start);
 

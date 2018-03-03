@@ -157,7 +157,7 @@ public class GenericMapCanvas implements MapCanvas {
     @Override
     public void deleteRoom() {
         this.canvas.getChildren().remove(current.getUI());
-        this.current = rooms.back();
+        this.setCurrent(rooms.delete());
     }
 
     @Override

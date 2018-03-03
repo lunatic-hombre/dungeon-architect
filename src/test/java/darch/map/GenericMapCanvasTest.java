@@ -29,7 +29,7 @@ public class GenericMapCanvasTest {
     @Before
     public void setUp() {
         this.pane = spy(new Pane());
-        this.map = new GenericMapCanvas(pane, new IsoMapNav(GRID_SIZE));
+        this.map = new GenericMapCanvas(pane, new IsoMapNav(new Point2D(0,0), GRID_SIZE));
     }
 
     @Test

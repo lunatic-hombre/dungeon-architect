@@ -6,6 +6,7 @@ import darch.cmd.MapCommandExecutor;
 import darch.map.GenericMapCanvas;
 import darch.map.IsoMapNav;
 import darch.map.MapCanvas;
+import darch.map.OverheadMapNav;
 import javafx.application.Application;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
@@ -49,7 +50,7 @@ public class Main extends Application {
 
         final Pane canvas = new Pane();
         rootPane.setCenter(canvas);
-        final MapCanvas map = new GenericMapCanvas(canvas, new IsoMapNav(30));
+        final MapCanvas map = new GenericMapCanvas(canvas, new IsoMapNav(new Point2D(400, 300), 30)); // TODO accurate origin
         final ListMapCommandExecutor commands = new ListMapCommandExecutor(map);
 
         final MenuBar menuBar = new MenuBar(

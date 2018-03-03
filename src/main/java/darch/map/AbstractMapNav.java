@@ -10,10 +10,22 @@ import java.util.stream.DoubleStream;
 
 public abstract class AbstractMapNav implements MapNav {
 
+    protected final Point2D origin;
     protected final double gridSize;
 
-    public AbstractMapNav(double gridSize) {
+    public AbstractMapNav(Point2D origin, double gridSize) {
+        this.origin = origin;
         this.gridSize = gridSize;
+    }
+
+    @Override
+    public Point2D getVector(Direction direction) {
+        return translateVector(direction.getVector(), direction.getElevation());
+    }
+
+    @Override
+    public Point2D translateGridPoint(Point2D point, double level) {
+        return origin.add(translateVector(point, level));
     }
 
     @Override
