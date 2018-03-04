@@ -16,7 +16,7 @@ public class AddRoomCommand implements MapCommand {
 
     @Override
     public String asString() {
-        return room.getHorizontalScale() + "x" + room.getMeridianScale() + locationString();
+        return room.getHorizontal() + "x" + room.getMeridian() + locationString();
     }
 
     private String locationString() {

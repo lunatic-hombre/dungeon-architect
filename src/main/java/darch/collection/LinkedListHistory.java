@@ -24,6 +24,12 @@ public class LinkedListHistory<E> implements History<E> {
     }
 
     @Override
+    public E delete() {
+        list.remove(index);
+        return back();
+    }
+
+    @Override
     public E forward() {
         if (index >= list.size()-1)
             throw new IndexOutOfBoundsException();

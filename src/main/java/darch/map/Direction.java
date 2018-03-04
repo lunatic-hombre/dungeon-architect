@@ -1,6 +1,7 @@
 package darch.map;
 
 import javafx.geometry.Point2D;
+import javafx.geometry.Point3D;
 
 public enum Direction {
 
@@ -41,6 +42,10 @@ public enum Direction {
 
     public Point2D getVector() {
         return new Point2D(x, y);
+    }
+
+    public Point3D getVector3D() {
+        return new Point3D(x, y, l);
     }
 
     public int getElevation() {

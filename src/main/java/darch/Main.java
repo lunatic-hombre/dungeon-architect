@@ -3,12 +3,15 @@ package darch;
 import darch.cmd.CommandInputField;
 import darch.cmd.ListMapCommandExecutor;
 import darch.cmd.MapCommandExecutor;
-import darch.map.IsoMap;
+import darch.map.GenericMapCanvas;
+import darch.map.IsoMapNav;
 import darch.map.MapCanvas;
+import darch.map.OverheadMapNav;
 import javafx.application.Application;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
 import javafx.print.PrinterJob;
 import javafx.scene.Node;
@@ -26,6 +29,7 @@ import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.scene.transform.Scale;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -47,7 +51,7 @@ public class Main extends Application {
 
         final Pane canvas = new Pane();
         rootPane.setCenter(canvas);
-        final MapCanvas map = new IsoMap(canvas, 30);
+        final MapCanvas map = new GenericMapCanvas(canvas, new IsoMapNav(new Point2D(400, 300), 30)); // TODO accurate origin
         final ListMapCommandExecutor commands = new ListMapCommandExecutor(map);
 
         final MenuBar menuBar = new MenuBar(
@@ -67,8 +71,8 @@ public class Main extends Application {
                         menuItem("West", new KeyCodeCombination(KeyCode.LEFT, KeyCombination.SHORTCUT_DOWN), e -> commands.execute("w")),
                         menuItem("South", new KeyCodeCombination(KeyCode.DOWN, KeyCombination.SHORTCUT_DOWN), e -> commands.execute("s"))),
                 menu("View",
-                        new MenuItem("Zoom Out"), // TODO
-                        new MenuItem("Zoom In"),
+                        menuItem("Zoom Out", new KeyCodeCombination(KeyCode.MINUS, KeyCombination.SHORTCUT_DOWN), e -> { canvas.getTransforms().add(new Scale(0.75, 0.75)); map.centerViewPort(); }), // TODO
+                        menuItem("Zoom In", new KeyCodeCombination(KeyCode.EQUALS, KeyCombination.SHORTCUT_DOWN), e -> { canvas.getTransforms().add(new Scale(1.25, 1.25)); map.centerViewPort(); }),
                         new MenuItem("Split Floors"),
                         new MenuItem("Show Labels"),
                         new MenuItem("Top-Down")));

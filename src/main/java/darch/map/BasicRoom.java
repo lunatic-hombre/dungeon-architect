@@ -33,7 +33,7 @@ public class BasicRoom implements Room {
             return 0;
         final int parentsLongitude = parent.getLongitude();
         return location.getDirection().isHorizontal()
-                ? location.getDirection().getX() * (parentsLongitude + parent.getHorizontalScale()/2 + horizontal /2)
+                ? location.getDirection().getX() * (parentsLongitude + parent.getHorizontal()/2 + horizontal /2)
                 : parentsLongitude;
     }
 
@@ -43,7 +43,7 @@ public class BasicRoom implements Room {
             return 0;
         final int parentsLatitude = parent.getLatitude();
         return location.getDirection().isVertical()
-                ? location.getDirection().getY() * (parentsLatitude + parent.getMeridianScale()/2 + meridian /2)
+                ? location.getDirection().getY() * (parentsLatitude + parent.getMeridian()/2 + meridian /2)
                 : parentsLatitude;
     }
 
@@ -58,12 +58,12 @@ public class BasicRoom implements Room {
     }
 
     @Override
-    public int getHorizontalScale() {
+    public int getHorizontal() {
         return horizontal;
     }
 
     @Override
-    public int getMeridianScale() {
+    public int getMeridian() {
         return meridian;
     }
 

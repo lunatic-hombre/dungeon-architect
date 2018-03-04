@@ -23,7 +23,6 @@ public class MappedRoom implements Room {
 
     final MapNav map;
     final Room room;
-    final List<ObjectReference> objectReferences;
 
     transient Point2D midPoint;
     transient Group ui;
@@ -31,7 +30,6 @@ public class MappedRoom implements Room {
     public MappedRoom(MapNav map, Point2D position, Room room) {
         this.map = map;
         this.room = room;
-        this.objectReferences = new ArrayList<>();
         final Room parent = room.getParent();
         if (room.getParent() == null)
             this.midPoint = position;
@@ -50,7 +48,7 @@ public class MappedRoom implements Room {
         }
     }
 
-    // TODO must maintain reference to model for persistence
+    // TODO maintain reference to model for persistence?
     public void add(Node... nodes) {
         getUI().getChildren().add(new Group(nodes));
     }
@@ -71,20 +69,20 @@ public class MappedRoom implements Room {
 
         final Group floor = new Group();
         final Polygon floorShape = map.poly(southWest, "floor-outline")
-                .then(getMeridianScale(), NORTH)
-                .then(getHorizontalScale(), EAST)
-                .then(getMeridianScale(), SOUTH)
+                .then(getMeridian(), NORTH)
+                .then(getHorizontal(), EAST)
+                .then(getMeridian(), SOUTH)
                 .get();
         floor.getChildren().add(floorShape);
 
         final Group gridLines = new Group();
-        for (int i = 0; i < getMeridianScale(); i++) {
+        for (int i = 0; i < getMeridian(); i++) {
             final Point2D start = map.relativePoint(southWest, i, NORTH);
-            gridLines.getChildren().add(line(start, map.relativePoint(start, getHorizontalScale(), EAST)));
+            gridLines.getChildren().add(line(start, map.relativePoint(start, getHorizontal(), EAST)));
         }
-        for (int i = 0; i < getHorizontalScale(); i++) {
+        for (int i = 0; i < getHorizontal(); i++) {
             final Point2D start = map.relativePoint(southWest, i, EAST);
-            gridLines.getChildren().add(line(start, map.relativePoint(start, getMeridianScale(), NORTH)));
+            gridLines.getChildren().add(line(start, map.relativePoint(start, getMeridian(), NORTH)));
         }
         gridLines.getStyleClass().add("grid-lines");
         floor.getChildren().add(gridLines);
@@ -188,13 +186,13 @@ public class MappedRoom implements Room {
     }
 
     @Override
-    public int getHorizontalScale() {
-        return room.getHorizontalScale();
+    public int getHorizontal() {
+        return room.getHorizontal();
     }
 
     @Override
-    public int getMeridianScale() {
-        return room.getMeridianScale();
+    public int getMeridian() {
+        return room.getMeridian();
     }
 
     public boolean isAdjacent(MappedRoom other, CardinalPoint direction) {

@@ -12,6 +12,13 @@ public interface History<E> extends Collection<E> {
     E back();
 
     /**
+     * Returns previous element and removes it.
+     * @return the previous element
+     * @throws IndexOutOfBoundsException when there is nothing behind.
+     */
+    E delete();
+
+    /**
      * Returns next element and maintains new position.
      * @return the next element.
      * @throws IndexOutOfBoundsException when there is nothing ahead.
