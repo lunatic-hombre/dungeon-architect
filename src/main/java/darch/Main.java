@@ -29,6 +29,7 @@ import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.scene.transform.Scale;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -70,8 +71,8 @@ public class Main extends Application {
                         menuItem("West", new KeyCodeCombination(KeyCode.LEFT, KeyCombination.SHORTCUT_DOWN), e -> commands.execute("w")),
                         menuItem("South", new KeyCodeCombination(KeyCode.DOWN, KeyCombination.SHORTCUT_DOWN), e -> commands.execute("s"))),
                 menu("View",
-                        new MenuItem("Zoom Out"), // TODO
-                        new MenuItem("Zoom In"),
+                        menuItem("Zoom Out", new KeyCodeCombination(KeyCode.MINUS, KeyCombination.SHORTCUT_DOWN), e -> { canvas.getTransforms().add(new Scale(0.75, 0.75)); map.centerViewPort(); }), // TODO
+                        menuItem("Zoom In", new KeyCodeCombination(KeyCode.EQUALS, KeyCombination.SHORTCUT_DOWN), e -> { canvas.getTransforms().add(new Scale(1.25, 1.25)); map.centerViewPort(); }),
                         new MenuItem("Split Floors"),
                         new MenuItem("Show Labels"),
                         new MenuItem("Top-Down")));

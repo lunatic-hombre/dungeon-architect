@@ -47,4 +47,17 @@ public interface MapCanvas {
      * Drop wall in given direction from current room.
      */
     void dropWall(CardinalPoint direction);
+
+    /**
+     * Move the viewport to the current logical position.
+     * @param transition the milliseconds for the transition
+     */
+    void centerViewPort(long transition);
+
+    /**
+     * Move the viewport at a 1 millisecond transition time (effectively no animation).
+     */
+    default void centerViewPort() {
+        centerViewPort(1);
+    }
 }

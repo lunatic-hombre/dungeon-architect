@@ -5,12 +5,14 @@ import darch.collection.LinkedListHistory;
 import darch.collection.Lists;
 import darch.fx.Tracer;
 import javafx.animation.TranslateTransition;
+import javafx.geometry.Bounds;
 import javafx.geometry.Point2D;
 import javafx.scene.Node;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Path;
 import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Shape;
+import javafx.scene.transform.Translate;
 import javafx.util.Duration;
 
 import java.util.ArrayList;
@@ -33,11 +35,11 @@ public class GenericMapCanvas implements MapCanvas {
                 return room.getLatitude() + room.getLongitude();
             });
 
-    protected final Pane canvas;
-    protected final History<MappedRoom> rooms;
-    protected final MapNav nav;
+    protected final Pane canvas; // TODO multiple canvas / nav pairs
+    protected final History<MappedRoom> rooms; // TODO plain rooms
+    protected final MapNav nav; // TODO multiple canvas / nav pairs
 
-    protected Point2D position;
+    protected Point2D position; // TODO remove
     protected MappedRoom current;
 
     public GenericMapCanvas(Pane canvas, MapNav nav) {
@@ -94,13 +96,17 @@ public class GenericMapCanvas implements MapCanvas {
         room.getUI().getStyleClass().add("active");
         current = room;
         position = room.getMidPoint();
-        adjustViewport();
+        centerViewPort(300);
     }
 
-    private void adjustViewport() {
-        final TranslateTransition translate = new TranslateTransition(Duration.millis(300), canvas);
-        translate.setToX(canvas.getWidth()/2d - position.getX());
-        translate.setToY(canvas.getHeight()/2d - position.getY());
+    @Override
+    public void centerViewPort(long transition) {
+        final Bounds bounds = canvas.getBoundsInParent();
+        final double scaleDeltaX = bounds.getWidth() - canvas.getWidth(),
+                     scaleDeltaY = bounds.getHeight() - canvas.getHeight();
+        final TranslateTransition translate = new TranslateTransition(Duration.millis(transition), canvas);
+        translate.setToX(canvas.getWidth()/2d - position.getX() - scaleDeltaX/2d);
+        translate.setToY(canvas.getHeight()/2d - position.getY() - scaleDeltaY/2d);
         translate.play();
     }
 
