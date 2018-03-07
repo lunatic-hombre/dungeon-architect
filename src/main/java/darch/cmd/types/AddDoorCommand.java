@@ -1,7 +1,7 @@
 package darch.cmd.types;
 
 import darch.cmd.MapCommand;
-import darch.map.MapCanvas;
+import darch.map.MapController;
 import darch.map.WallLocation;
 
 public class AddDoorCommand implements MapCommand {
@@ -18,7 +18,7 @@ public class AddDoorCommand implements MapCommand {
     }
 
     @Override
-    public void execute(MapCanvas map) {
+    public void execute(MapController map) {
         map.addDoor(wallLocation);
     }
 

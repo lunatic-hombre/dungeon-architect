@@ -23,4 +23,5 @@ public interface MapNav {
 
     Point2D getVector(Direction direction);
 
+    Point2D getOrigin();
 }

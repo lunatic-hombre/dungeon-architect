@@ -1,12 +1,12 @@
 package darch.cmd;
 
-import darch.map.MapCanvas;
+import darch.map.MapController;
 
 public interface MapCommand {
 
     String asString();
 
-    void execute(MapCanvas map);
+    void execute(MapController map);
 
     MapCommand reverse();
 

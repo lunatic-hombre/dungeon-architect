@@ -4,13 +4,13 @@ public class BasicRoom implements Room {
 
     private final Room parent;
     private final RelativeRoomLocation location;
-    private final int horizontal, meridian;
+    private final double horizontal, meridian;
 
     public BasicRoom(int horizontal, int meridian) {
         this(null, null, horizontal, meridian);
     }
 
-    public BasicRoom(Room parent, RelativeRoomLocation location, int horizontal, int meridian) {
+    public BasicRoom(Room parent, RelativeRoomLocation location, double horizontal, double meridian) {
         this.parent = parent;
         this.location = location;
         this.horizontal = horizontal;
@@ -28,42 +28,37 @@ public class BasicRoom implements Room {
     }
 
     @Override
-    public int getLongitude() {
+    public double getLongitude() {
         if (parent == null)
             return 0;
-        final int parentsLongitude = parent.getLongitude();
-        return location.getDirection().isHorizontal()
-                ? location.getDirection().getX() * (parentsLongitude + parent.getHorizontal()/2 + horizontal /2)
-                : parentsLongitude;
+        return parent.getLongitude()
+                + location.getDirection().getX() * (parent.getHalfHorizontal() + getHalfHorizontal())
+                + location.getDirection().fallback().reverse().getX() * (location.getParentIndex() - location.getChildIndex() - parent.getHalfHorizontal() + getHalfHorizontal());
     }
 
     @Override
-    public int getLatitude() {
+    public double getLatitude() {
         if (parent == null)
             return 0;
-        final int parentsLatitude = parent.getLatitude();
-        return location.getDirection().isVertical()
-                ? location.getDirection().getY() * (parentsLatitude + parent.getMeridian()/2 + meridian /2)
-                : parentsLatitude;
+        return parent.getLatitude()
+                + location.getDirection().getY() * (parent.getHalfMeridian() + getHalfMeridian())
+                + location.getDirection().fallback().reverse().getY() * (location.getParentIndex() - location.getChildIndex() - parent.getHalfMeridian() + getHalfMeridian());
     }
 
     @Override
     public int getLevel() {
         if (parent == null)
             return 0;
-        final int parentsLevel = parent.getLevel();
-        return location.getFloor().equals(RelativeLevel.SAME_LEVEL)
-                ? parentsLevel
-                : parentsLevel + location.getFloor().getScale();
+        return parent.getLevel() + location.getFloor().getScale();
     }
 
     @Override
-    public int getHorizontal() {
+    public double getHorizontal() {
         return horizontal;
     }
 
     @Override
-    public int getMeridian() {
+    public double getMeridian() {
         return meridian;
     }
 

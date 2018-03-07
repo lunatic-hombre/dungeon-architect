@@ -1,7 +1,7 @@
 package darch.cmd.types;
 
 import darch.cmd.MapCommand;
-import darch.map.MapCanvas;
+import darch.map.MapController;
 import darch.map.WallLocation;
 
 public class GoTowardCommand implements MapCommand {
@@ -18,7 +18,7 @@ public class GoTowardCommand implements MapCommand {
     }
 
     @Override
-    public void execute(MapCanvas map) {
+    public void execute(MapController map) {
         map.go(wallLocation);
     }
 
@@ -30,7 +30,7 @@ public class GoTowardCommand implements MapCommand {
                 return "back";
             }
             @Override
-            public void execute(MapCanvas map) {
+            public void execute(MapController map) {
                 map.back();
             }
             @Override
