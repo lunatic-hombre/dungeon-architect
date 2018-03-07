@@ -1,21 +1,21 @@
 package darch.cmd;
 
-import darch.map.MapCanvas;
+import darch.map.MapController;
 
 import java.io.*;
 import java.util.LinkedList;
 
 public class ListMapCommandExecutor implements MapCommandExecutor {
 
-    private final MapCanvas map;
+    private final MapController map;
     private final Format<MapCommand> format;
     private final LinkedList<MapCommand> commands;
 
-    public ListMapCommandExecutor(MapCanvas map) {
+    public ListMapCommandExecutor(MapController map) {
         this(map, MapCommands.getDefaultFormat(map), new LinkedList<>());
     }
 
-    public ListMapCommandExecutor(MapCanvas map, Format<MapCommand> format, LinkedList<MapCommand> commands) {
+    public ListMapCommandExecutor(MapController map, Format<MapCommand> format, LinkedList<MapCommand> commands) {
         this.map = map;
         this.format = format;
         this.commands = commands;

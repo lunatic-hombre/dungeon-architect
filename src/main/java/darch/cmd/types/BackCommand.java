@@ -1,7 +1,7 @@
 package darch.cmd.types;
 
 import darch.cmd.MapCommand;
-import darch.map.MapCanvas;
+import darch.map.MapController;
 
 public class BackCommand implements MapCommand {
 
@@ -11,7 +11,7 @@ public class BackCommand implements MapCommand {
     }
 
     @Override
-    public void execute(MapCanvas map) {
+    public void execute(MapController map) {
         map.back();
     }
 

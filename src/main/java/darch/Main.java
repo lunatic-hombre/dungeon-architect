@@ -3,10 +3,7 @@ package darch;
 import darch.cmd.CommandInputField;
 import darch.cmd.ListMapCommandExecutor;
 import darch.cmd.MapCommandExecutor;
-import darch.map.GenericMapCanvas;
-import darch.map.IsoMapNav;
-import darch.map.MapCanvas;
-import darch.map.OverheadMapNav;
+import darch.map.*;
 import javafx.application.Application;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.event.ActionEvent;
@@ -18,10 +15,7 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.SnapshotParameters;
-import javafx.scene.control.Label;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuBar;
-import javafx.scene.control.MenuItem;
+import javafx.scene.control.*;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
@@ -36,11 +30,13 @@ import javafx.stage.Stage;
 import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
+import java.util.function.BiConsumer;
 
 
 public class Main extends Application {
 
-    public static final int WIDTH = 800,  HEIGHT = 600;
+    private static final int WIDTH = 800,  HEIGHT = 600, GRID_SIZE = 30;
+    private static Point2D CENTER = new Point2D(WIDTH/2, HEIGHT/2-50);
 
     File currentFile;
 
@@ -49,9 +45,12 @@ public class Main extends Application {
 
         final BorderPane rootPane = new BorderPane();
 
-        final Pane canvas = new Pane();
-        rootPane.setCenter(canvas);
-        final MapCanvas map = new GenericMapCanvas(canvas, new IsoMapNav(new Point2D(400, 300), 30)); // TODO accurate origin
+        final Pane isoCanvas = new Pane(), overheadCanvas = new Pane();
+        rootPane.setCenter(isoCanvas);
+        final MapController map = new MultiViewMapController(
+                new MapViewImpl(isoCanvas, new IsoMapNav(CENTER, GRID_SIZE)),
+                new MapViewImpl(overheadCanvas, new OverheadMapNav(CENTER, GRID_SIZE))
+        );
         final ListMapCommandExecutor commands = new ListMapCommandExecutor(map);
 
         final MenuBar menuBar = new MenuBar(
@@ -59,8 +58,8 @@ public class Main extends Application {
                         menuItem("Open", new KeyCodeCombination(KeyCode.O, KeyCombination.SHORTCUT_DOWN), e -> loadFromFile(stage, commands)),
                         menuItem("Save", new KeyCodeCombination(KeyCode.S, KeyCombination.SHORTCUT_DOWN), e -> saveToFile(stage, commands)),
                         menuItem("Save As...", new KeyCodeCombination(KeyCode.S, KeyCombination.SHIFT_DOWN, KeyCombination.SHORTCUT_DOWN), e -> saveAsFile(stage, commands)),
-                        menuItem("Export...", new KeyCodeCombination(KeyCode.X, KeyCombination.SHORTCUT_DOWN), e -> export(stage, canvas)),
-                        menuItem("Print", new KeyCodeCombination(KeyCode.P, KeyCombination.SHORTCUT_DOWN), e -> print(stage, canvas))),
+                        menuItem("Export...", new KeyCodeCombination(KeyCode.E, KeyCombination.SHORTCUT_DOWN), e -> export(stage, (Parent) rootPane.getCenter())),
+                        menuItem("Print", new KeyCodeCombination(KeyCode.P, KeyCombination.SHORTCUT_DOWN), e -> print(stage, (Parent) rootPane.getCenter()))),
                 menu("Edit",
                         menuItem("Undo", new KeyCodeCombination(KeyCode.Z, KeyCombination.SHORTCUT_DOWN), e -> commands.undo()),
                         menuItem("Redo", new KeyCodeCombination(KeyCode.Z, KeyCombination.SHIFT_DOWN, KeyCombination.SHORTCUT_DOWN), e -> commands.redo())),
@@ -71,11 +70,9 @@ public class Main extends Application {
                         menuItem("West", new KeyCodeCombination(KeyCode.LEFT, KeyCombination.SHORTCUT_DOWN), e -> commands.execute("w")),
                         menuItem("South", new KeyCodeCombination(KeyCode.DOWN, KeyCombination.SHORTCUT_DOWN), e -> commands.execute("s"))),
                 menu("View",
-                        menuItem("Zoom Out", new KeyCodeCombination(KeyCode.MINUS, KeyCombination.SHORTCUT_DOWN), e -> { canvas.getTransforms().add(new Scale(0.75, 0.75)); map.centerViewPort(); }), // TODO
-                        menuItem("Zoom In", new KeyCodeCombination(KeyCode.EQUALS, KeyCombination.SHORTCUT_DOWN), e -> { canvas.getTransforms().add(new Scale(1.25, 1.25)); map.centerViewPort(); }),
-                        new MenuItem("Split Floors"),
-                        new MenuItem("Show Labels"),
-                        new MenuItem("Top-Down")));
+                        menuItem("Zoom Out", new KeyCodeCombination(KeyCode.MINUS, KeyCombination.SHORTCUT_DOWN), e -> { isoCanvas.getTransforms().add(new Scale(0.75, 0.75)); map.centerViewPort(); }), // TODO
+                        menuItem("Zoom In", new KeyCodeCombination(KeyCode.EQUALS, KeyCombination.SHORTCUT_DOWN), e -> { isoCanvas.getTransforms().add(new Scale(1.25, 1.25)); map.centerViewPort(); }),
+                        checkboxMenuItem("Overhead", new KeyCodeCombination(KeyCode.O, KeyCombination.SHORTCUT_DOWN), (e, checked) -> rootPane.setCenter(checked ? overheadCanvas : isoCanvas) )));
         rootPane.setTop(menuBar);
 
         final VBox bottomPane = new VBox();
@@ -90,14 +87,14 @@ public class Main extends Application {
         bottomPane.getChildren().add(help);
         rootPane.setBottom(bottomPane);
 
-        stage.setTitle("Dungeon Workshop");
+        stage.setTitle("Dungeon Architect");
         final Scene scene = new Scene(rootPane, WIDTH, HEIGHT + 50);
         scene.getStylesheets().add("style.css");
         stage.setScene(scene);
         stage.show();
     }
 
-    private void print(Stage stage, Node node) {
+    private void print(Stage stage, Parent node) {
         final PrinterJob job = PrinterJob.createPrinterJob();
         if (job == null)
             throw new RuntimeException("Printing not available!");
@@ -107,20 +104,34 @@ public class Main extends Application {
         proceed = job.showPrintDialog(stage);
         if (!proceed)
             return;
-        final boolean success = job.printPage(node);
-        if (success) {
-            job.endJob();
+
+        try {
+            final File temp = File.createTempFile("test", "png");
+            currentFile.deleteOnExit();
+            saveToFile(node, temp);
+
+            final boolean success = job.printPage(node);
+            if (success) {
+                job.endJob();
+            }
+            node.setClip(null);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
     private void export(Stage stage, Parent node) {
-        if (node.getChildrenUnmodifiable().isEmpty())
-            return;
-        final Rectangle2D viewport = getVisibleArea(node);
         final FileChooser fileChooser = new FileChooser();
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("pixel nemmrrr graphics (*.png)", "*.png"));
         final File file = fileChooser.showSaveDialog(stage);
+        saveToFile(node, file);
+    }
+
+    private void saveToFile(Parent node, File file) {
+        if (node.getChildrenUnmodifiable().isEmpty())
+            return;
         final SnapshotParameters snapshotParameters = new SnapshotParameters();
+        final Rectangle2D viewport = getVisibleArea(node);
         snapshotParameters.setViewport(viewport);
         final WritableImage image = node.snapshot(snapshotParameters, null);
         try {
@@ -191,6 +202,13 @@ public class Main extends Application {
         final MenuItem menuItem = new MenuItem(label);
         menuItem.setAccelerator(shortcut);
         menuItem.setOnAction(eventHandler);
+        return menuItem;
+    }
+
+    private CheckMenuItem checkboxMenuItem(String label, KeyCombination shortcut, BiConsumer<ActionEvent, Boolean> eventHandler) {
+        final CheckMenuItem menuItem = new CheckMenuItem(label);
+        menuItem.setAccelerator(shortcut);
+        menuItem.setOnAction(e -> eventHandler.accept(e, menuItem.isSelected()));
         return menuItem;
     }
 

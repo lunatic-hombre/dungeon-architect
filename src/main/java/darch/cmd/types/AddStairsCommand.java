@@ -1,7 +1,7 @@
 package darch.cmd.types;
 
 import darch.cmd.MapCommand;
-import darch.map.MapCanvas;
+import darch.map.MapController;
 import darch.map.WallLocation;
 
 public class AddStairsCommand implements MapCommand {
@@ -18,7 +18,7 @@ public class AddStairsCommand implements MapCommand {
     }
 
     @Override
-    public void execute(MapCanvas map) {
+    public void execute(MapController map) {
         map.addStairs(wallLocation);
     }
 

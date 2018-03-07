@@ -1,7 +1,7 @@
 package darch.cmd.types;
 
 import darch.cmd.MapCommand;
-import darch.map.MapCanvas;
+import darch.map.MapController;
 import darch.map.RelativeLevel;
 import darch.map.RelativeRoomLocation;
 import darch.map.Room;
@@ -31,7 +31,7 @@ public class AddRoomCommand implements MapCommand {
     }
 
     @Override
-    public void execute(MapCanvas map) {
+    public void execute(MapController map) {
         map.addRoom(room);
     }
 
@@ -43,7 +43,7 @@ public class AddRoomCommand implements MapCommand {
                 return "^"+AddRoomCommand.this.asString();
             }
             @Override
-            public void execute(MapCanvas map) {
+            public void execute(MapController map) {
                 map.deleteRoom();
             }
             @Override

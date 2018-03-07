@@ -11,7 +11,7 @@ public enum RelativeLevel {
 
     RelativeLevel(Direction direction) {
         this.direction = direction;
-        this.scale = direction == null ? 0 : -direction.l;
+        this.scale = direction == null ? 0 : direction.l;
     }
 
     public int getScale() {

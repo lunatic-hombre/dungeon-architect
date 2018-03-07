@@ -93,4 +93,9 @@ public abstract class AbstractMapNav implements MapNav {
         return p.add(getVector(direction).multiply(distance));
     }
 
+    @Override
+    public Point2D getOrigin() {
+        return origin;
+    }
+
 }

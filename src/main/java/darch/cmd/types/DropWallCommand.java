@@ -2,7 +2,7 @@ package darch.cmd.types;
 
 import darch.cmd.MapCommand;
 import darch.map.CardinalPoint;
-import darch.map.MapCanvas;
+import darch.map.MapController;
 
 public class DropWallCommand implements MapCommand {
 
@@ -18,7 +18,7 @@ public class DropWallCommand implements MapCommand {
     }
 
     @Override
-    public void execute(MapCanvas map) {
+    public void execute(MapController map) {
         map.dropWall(direction);
     }
 

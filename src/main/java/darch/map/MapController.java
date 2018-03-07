@@ -1,6 +1,6 @@
 package darch.map;
 
-public interface MapCanvas {
+public interface MapController {
 
     /**
      * Get the current room details.
@@ -34,7 +34,7 @@ public interface MapCanvas {
     void go(WallLocation location);
 
     /**
-     * Remove everything from the map.
+     * Remove everything from the nav.
      */
     void clear();
 

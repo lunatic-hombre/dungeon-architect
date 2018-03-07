@@ -3,6 +3,8 @@ package darch.map;
 import javafx.geometry.Point2D;
 import javafx.geometry.Point3D;
 
+import static darch.math.Matrices.multiply;
+
 public interface Room {
 
     /**
@@ -15,26 +17,30 @@ public interface Room {
      */
     RelativeRoomLocation getLocation();
 
-    int getLongitude();
+    double getLongitude();
 
-    int getLatitude();
+    double getLatitude();
 
     int getLevel();
 
-    int getHorizontal();
+    double getHorizontal();
 
-    int getMeridian();
+    double getMeridian();
 
     default double getHalfHorizontal() {
-        return ((double) getHorizontal())/2d;
+        return getHorizontal()/2d;
     }
 
     default double getHalfMeridian() {
-        return ((double) getMeridian())/2d;
+        return getMeridian()/2d;
     }
 
     default Point2D getDimensions() {
         return new Point2D(getHorizontal(), getMeridian());
+    }
+
+    default Point2D getHalfDimensions() {
+        return new Point2D(getHalfHorizontal(), getHalfMeridian());
     }
 
     default double getDimension(CardinalPoint direction) {
@@ -43,6 +49,10 @@ public interface Room {
 
     default Point2D getMidpoint() {
         return new Point2D(getLongitude(), getLatitude());
+    }
+
+    default Point2D getMidWall(CardinalPoint direction) {
+        return getMidpoint().add(multiply(direction.getVector(), getHalfDimensions()));
     }
 
     default Point3D getMidpoint3D() {
@@ -58,7 +68,7 @@ public interface Room {
     }
 
     default Range getRangeX() {
-        return Range.range(getStartX(), getEndX());
+        return Range.exclusive(getStartX(), getEndX());
     }
 
     default double getStartY() {
@@ -70,12 +80,38 @@ public interface Room {
     }
 
     default Range getRangeY() {
-        return Range.range(getStartY(), getEndY());
+        return Range.exclusive(getStartY(), getEndY());
+    }
+
+    default double getX(CardinalPoint direction) {
+        return getLongitude() + getHalfHorizontal() * direction.getX();
+    }
+
+    default double getY(CardinalPoint direction) {
+        return getLatitude() + getHalfMeridian() * direction.getY();
+    }
+
+    default Point2D getOffset(WallLocation wallLocation) {
+        return getOffset(wallLocation.getDirection(), wallLocation.getIndex());
+    }
+
+    default Point2D getOffset(CardinalPoint direction, int offset) {
+        final CardinalPoint back = direction.fallback();
+        return getMidWall(direction)
+                .add(multiply(getHalfDimensions(), back.getVector()))
+                .add(back.reverse().getVector().multiply(offset));
     }
 
     default boolean isAdjacent(Room other) {
         return (getStartY() == other.getEndY() || getEndY() == other.getStartY()) && getRangeX().overlaps(other.getRangeX())
             || (getStartX() == other.getEndX() || getEndX() == other.getStartX()) && getRangeY().overlaps(other.getRangeY());
     }
+
+    default boolean isAdjacent(Room other, CardinalPoint direction) {
+        return direction.isHorizontal()
+                ? getX(direction) == other.getX(direction.reverse()) && getRangeY().overlaps(other.getRangeY())
+                : getY(direction) == other.getY(direction.reverse()) && getRangeX().overlaps(other.getRangeX());
+    }
+
 
 }

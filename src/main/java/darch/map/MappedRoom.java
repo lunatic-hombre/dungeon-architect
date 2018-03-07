@@ -21,14 +21,14 @@ import static java.util.Arrays.asList;
 
 public class MappedRoom implements Room {
 
-    final MapNav map;
+    final MapNav nav;
     final Room room;
 
     transient Point2D midPoint;
     transient Group ui;
 
-    public MappedRoom(MapNav map, Point2D position, Room room) {
-        this.map = map;
+    public MappedRoom(MapNav nav, Point2D position, Room room) {
+        this.nav = nav;
         this.room = room;
         final Room parent = room.getParent();
         if (room.getParent() == null)
@@ -40,7 +40,7 @@ public class MappedRoom implements Room {
             final double parentOffset = Math.abs(reflect(parent.getDimensions()).dotProduct(direction.getVector()) / 2d) - (double)(getLocation().getParentIndex());
             final double childOffset = Math.abs(reflect(getDimensions()).dotProduct(direction.getVector()) / 2d) - (double)(getLocation().getChildIndex());
 
-            this.midPoint = map.points(position)
+            this.midPoint = nav.points(position)
                     .then(distanceToward, direction)
                     .then(parentOffset - childOffset, direction.fallBack())
                     .then(ROOM_HEIGHT, getLocation().getFloor().asDirection())
@@ -62,13 +62,13 @@ public class MappedRoom implements Room {
         if (ui != null)
             return ui;
 
-        final Point2D southWest = map.points(midPoint)
+        final Point2D southWest = nav.points(midPoint)
                 .then(getHalfMeridian(), SOUTH)
                 .then(getHalfHorizontal(), WEST)
                 .get();
 
         final Group floor = new Group();
-        final Polygon floorShape = map.poly(southWest, "floor-outline")
+        final Polygon floorShape = nav.poly(southWest, "floor-outline")
                 .then(getMeridian(), NORTH)
                 .then(getHorizontal(), EAST)
                 .then(getMeridian(), SOUTH)
@@ -77,12 +77,12 @@ public class MappedRoom implements Room {
 
         final Group gridLines = new Group();
         for (int i = 0; i < getMeridian(); i++) {
-            final Point2D start = map.relativePoint(southWest, i, NORTH);
-            gridLines.getChildren().add(line(start, map.relativePoint(start, getHorizontal(), EAST)));
+            final Point2D start = nav.relativePoint(southWest, i, NORTH);
+            gridLines.getChildren().add(line(start, nav.relativePoint(start, getHorizontal(), EAST)));
         }
         for (int i = 0; i < getHorizontal(); i++) {
-            final Point2D start = map.relativePoint(southWest, i, EAST);
-            gridLines.getChildren().add(line(start, map.relativePoint(start, getMeridian(), NORTH)));
+            final Point2D start = nav.relativePoint(southWest, i, EAST);
+            gridLines.getChildren().add(line(start, nav.relativePoint(start, getMeridian(), NORTH)));
         }
         gridLines.getStyleClass().add("grid-lines");
         floor.getChildren().add(gridLines);
@@ -107,14 +107,14 @@ public class MappedRoom implements Room {
 
     private Polygon createWall(CardinalPoint direction) {
         final CardinalPoint perpendicular = direction.fallback();
-        final Point2D startingCorner = map.relativePoint(getMidWall(direction),
+        final Point2D startingCorner = nav.relativePoint(getMidWall(direction),
                 getDimension(perpendicular)/2d, perpendicular);
         // if adding wall from origin, avoid section already created by parent.
         // TODO just use substract
         if (direction.equals(getOrigin())) {
             if (getDimension(perpendicular) <= getParent().getDimension(perpendicular))
                 return new Polygon(); // no wall
-            return map.poly(startingCorner, direction.name().toLowerCase(), "wall", "origin")
+            return nav.poly(startingCorner, direction.name().toLowerCase(), "wall", "origin")
                     .then(ROOM_HEIGHT, UP)
                     .then(getLocation().getChildIndex() - getLocation().getParentIndex(), perpendicular.reverse())
                     .then(ROOM_HEIGHT, DOWN)
@@ -130,9 +130,9 @@ public class MappedRoom implements Room {
 
     Polygon buildWall(CardinalPoint direction) {
         final CardinalPoint perpendicular = direction.fallback();
-        final Point2D startingCorner = map.relativePoint(getMidWall(direction),
+        final Point2D startingCorner = nav.relativePoint(getMidWall(direction),
                 getDimension(perpendicular)/2d, perpendicular);
-        return map.poly(startingCorner, direction.name().toLowerCase(), "wall")
+        return nav.poly(startingCorner, direction.name().toLowerCase(), "wall")
                 .then(ROOM_HEIGHT, UP)
                 .then(getDimension(perpendicular), perpendicular.reverse())
                 .then(ROOM_HEIGHT, DOWN)
@@ -150,14 +150,14 @@ public class MappedRoom implements Room {
     public Point2D getMidWall(CardinalPoint direction) {
         final Direction d = direction.asDirection();
         final double distance = Math.abs(getDimensions().dotProduct(d.getVector())/2d);
-        return map.relativePoint(getMidPoint(), distance, d);
+        return nav.relativePoint(getMidPoint(), distance, d);
     }
 
     public Line getBoundary(CardinalPoint direction) {
         final Point2D midWall = getMidWall(direction);
         final CardinalPoint d1 = direction.rotate90(), d2 = d1.reverse();
         final double distance = Math.abs(direction.getVector().dotProduct(getDimensions()) / 2d);
-        return line(map.relativePoint(midWall, distance, d1.asDirection()), map.relativePoint(midWall, distance, d2.asDirection()));
+        return line(nav.relativePoint(midWall, distance, d1.asDirection()), nav.relativePoint(midWall, distance, d2.asDirection()));
     }
 
     @Override
@@ -171,12 +171,12 @@ public class MappedRoom implements Room {
     }
 
     @Override
-    public int getLongitude() {
+    public double getLongitude() {
         return room.getLongitude();
     }
 
     @Override
-    public int getLatitude() {
+    public double getLatitude() {
         return room.getLatitude();
     }
 
@@ -186,12 +186,12 @@ public class MappedRoom implements Room {
     }
 
     @Override
-    public int getHorizontal() {
+    public double getHorizontal() {
         return room.getHorizontal();
     }
 
     @Override
-    public int getMeridian() {
+    public double getMeridian() {
         return room.getMeridian();
     }
 
